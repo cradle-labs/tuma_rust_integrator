@@ -137,6 +137,10 @@ impl PretiumService {
         let path = self.to_path(&req);
         let payload = self.to_payload(&req);
 
+        println!("Payload {:?}", payload);
+        println!("API KEY {:?}", self.api_key);
+        println!("Path {:?}", path);
+
         let resp = self.client.post(path.as_str())
             .header("x-api-key", self.api_key.as_str())
             .json(&payload)
