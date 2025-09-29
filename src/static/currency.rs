@@ -1,7 +1,7 @@
 use crate::controller::currency_controller::{Currency, CurrencyType};
 
 pub struct CurrencyStaticData {
-    currencies: Vec<Currency>
+    pub currencies: Vec<Currency>
 }
 
 
