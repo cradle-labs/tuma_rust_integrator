@@ -91,27 +91,27 @@ impl PretiumService {
         }
     }
 
-    fn to_payload(&self, req: &PretiumProcessRequest)->HashMap<&str, &str> {
+    fn to_payload<'a>(&'a self, req: &'a PretiumProcessRequest) ->HashMap<&'a str, &'a str> {
 
         let mut payload = HashMap::new();
 
 
         match req {
             PretiumProcessRequest::ExchangeRate(data)=>{
-                payload.insert("currency_code", data.currency.as_str())
+                payload.insert("currency_code", data.currency.as_str());
             },
             PretiumProcessRequest::OnRampMobile(data)=>{
                 payload.insert("shortcode", data.phone.as_str());
                 payload.insert("amount", data.amount.as_str());
                 payload.insert("mobile_network", data.network.as_str());
-                payload.insert("callback_url", self.callback_on_ramp.as_str())
+                payload.insert("callback_url", self.callback_on_ramp.as_str());
             },
             PretiumProcessRequest::OffRampMobile(data)=>{
                 payload.insert("shortcode", data.phone.as_str());
                 payload.insert("amount", data.amount.as_str());
                 payload.insert("type", "MOBILE");
                 payload.insert("mobile_network", data.network.as_str());
-                payload.insert("callback_url", self.callback_off_ramp.as_str())
+                payload.insert("callback_url", self.callback_off_ramp.as_str());
             }
         }
 
@@ -119,12 +119,12 @@ impl PretiumService {
         payload
     }
 
-    fn to_path(&self, req: &PretiumProcessRequest)-> &str {
+    fn to_path(&self, req: &PretiumProcessRequest)->String {
 
         match req {
-            PretiumProcessRequest::ExchangeRate(_)=> "/exchange-rate",
-            PretiumProcessRequest::OnRampMobile(d)=>format!("/{}/collect", d.currency_id).as_str(),
-            PretiumProcessRequest::OffRampMobile(d)=>format!("/{}/disburse", d.currency).as_str()
+            PretiumProcessRequest::ExchangeRate(_)=> "/exchange-rate".to_string(),
+            PretiumProcessRequest::OnRampMobile(d)=>format!("/{}/collect", d.currency_id),
+            PretiumProcessRequest::OffRampMobile(d)=>format!("/{}/disburse", d.currency)
         }
     }
 

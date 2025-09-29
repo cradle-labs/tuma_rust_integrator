@@ -22,4 +22,4 @@ tokio = { version = "1.45.1", features = ["full"]}
 aptos-rust-sdk = { git = "https://github.com/porkytheblack/aptos-rust-sdk.git", package = "aptos-rust-sdk", branch = "fix/get-transaction-hash"}
 aptos-crypto = { git = "https://github.com/porkytheblack/aptos-rust-sdk.git",  package = "aptos-crypto", branch = "fix/get-transaction-hash"}
 aptos-rust-sdk-types = { git = "https://github.com/porkytheblack/aptos-rust-sdk.git", package = "aptos-rust-sdk-types", branch = "fix/get-transaction-hash"}
-uuid = { version = "1.18.1", features = ["v4"] }
+uuid = { version = "1.18.1", features = ["v4", "serde"] }

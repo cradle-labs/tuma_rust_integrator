@@ -50,8 +50,8 @@ impl Currency {
                     None=>return Err(anyhow!("chain_not_found"))
                 };
 
-                match chain {
-                    String::from("aptos")=>{
+                match chain.as_str() {
+                    "aptos"=>{
 
                         let token_address = match &self.address {
                             Some(a)=>a,

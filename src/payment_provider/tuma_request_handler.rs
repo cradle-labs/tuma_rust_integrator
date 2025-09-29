@@ -78,7 +78,7 @@ impl TumaRequestHandler {
                             None=>return Err(anyhow!("token_address_not_found"))
                         };
                         let scale = match payload.token.decimals {
-                            Some(v) => 10.pow(v),
+                            Some(v) => Some(10__u64.pow(v as u32)) ,
                             None=>return Err(anyhow!("tokens_should_have_a_scale"))
                         };
                         match &payload.token.is_fungible_asset {
@@ -89,7 +89,7 @@ impl TumaRequestHandler {
                                     token: token_address,
                                     scale,
                                     to_account: payload.to
-                                }))
+                                })).await
                             },
                             _=>{
                                 wallet.send(WalletTransaction::SendToken(SendTokenTransactionArgs {
@@ -98,7 +98,7 @@ impl TumaRequestHandler {
                                     token_type: Some(token_address),
                                     scale,
                                     to_account: payload.to
-                                }))
+                                })).await
                             }
                         }
                     }

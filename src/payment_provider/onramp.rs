@@ -1,7 +1,7 @@
 use diesel::{r2d2, PgConnection};
 use diesel::r2d2::{ConnectionManager};
 use anyhow::{Result,anyhow};
-use bigdecimal::{BigDecimal, ToPrimitive};
+use bigdecimal::{BigDecimal, FromPrimitive, ToPrimitive};
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -40,7 +40,7 @@ pub struct PaymentMethod {
     pub created_at: NaiveDateTime,
 }
 
-#[derive(Deserialize, Serialize, diesel_derive_enum::DbEnum)]
+#[derive(Deserialize, Serialize, diesel_derive_enum::DbEnum, Debug)]
 #[ExistingTypePath = "crate::schema::sql_types::OnrampRequestStatus"]
 pub enum OnRampRequestStatusEnum {
     Pending,
@@ -156,13 +156,13 @@ impl OnRampHandler {
                     PretiumProcessResponse::OnRampMobile(d)=>{
 
                         diesel::insert_into(OnRampRequestsTable::table).values(&CreateOnRampRequest {
-                            amount: BigDecimal::from(req.amount),
+                            amount: BigDecimal::from_f64(req.amount).unwrap(),
                             data: None,
                             requester: payment_method.owner,
                             transaction_ref: Some(d.transaction_code.clone()),
                             payment_method_id: payment_method.id,
                             target_token: req.target_token
-                        }).returning(OnRampRequestsTable::dsl::id).get_result(&mut conn)?;
+                        }).execute(&mut conn)?;
 
                         Ok(d.transaction_code.clone())
                     },
@@ -188,9 +188,9 @@ impl OnRampHandler {
             }
         };
 
-        let status_value = match callback.status {
-            String::from("COMPLETE")=>OnRampRequestStatusEnum::Completed,
-            String::from("FAILED")=>OnRampRequestStatusEnum::Failed,
+        let status_value = match callback.status.as_str() {
+            "COMPLETE"=>OnRampRequestStatusEnum::Completed,
+            "FAILED"=>OnRampRequestStatusEnum::Failed,
             _=>OnRampRequestStatusEnum::Canceled
         };
 
@@ -239,7 +239,7 @@ impl OnRampHandler {
             .set((
                 status.eq(status_value),
                 data.eq(data_json),
-                final_token_quote.eq(BigDecimal::from(token_b_amount)),
+                final_token_quote.eq(BigDecimal::from_f64(token_b_amount)),
                 on_chain_transaction_hash.eq(hash)
                 ))
             .execute(&mut conn)?;

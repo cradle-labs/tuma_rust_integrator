@@ -7,6 +7,6 @@ pub mod pretium;
 pub mod r#static;
 
 #[tokio::main]
-fn main() {
+async fn main() {
 
 }

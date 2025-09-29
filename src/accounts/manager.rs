@@ -18,7 +18,7 @@ pub struct CreateAccountReq {
     pub address: String
 }
 
-#[derive(Deserialize, Serialize, diesel_derive_enum::DbEnum)]
+#[derive(Deserialize, Serialize, diesel_derive_enum::DbEnum, Debug)]
 #[ExistingTypePath = "crate::schema::sql_types::PaymentMethodType"]
 pub enum PaymentMethodType {
     Bank,
