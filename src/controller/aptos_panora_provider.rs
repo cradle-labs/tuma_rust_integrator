@@ -5,6 +5,7 @@ use reqwest::blocking::Client;
 
 const BASE_API: &str = "https://api.panora.exchange";
 
+#[derive(Debug, Clone, Deserialize)]
 pub struct AptosPanoraProvider {
     api_key: String
 }
