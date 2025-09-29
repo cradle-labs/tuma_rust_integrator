@@ -129,12 +129,11 @@ impl PretiumService {
     }
 
     pub async fn process(&mut self, req: PretiumProcessRequest)->Result<PretiumProcessResponse> {
-        let client = Client::new();
 
         let path = self.to_path(&req);
         let payload = self.to_payload(&req);
 
-        let resp = client.post(path)
+        let resp = self.client.post(path)
             .header("x-api-key", self.api_key.as_str())
             .json(&payload)
             .send()

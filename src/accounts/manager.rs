@@ -5,6 +5,7 @@ use crate::schema::account as AccountTable;
 use crate::schema::payment_method as PaymentMethodTable;
 use diesel::prelude::*;
 use anyhow::{Result, anyhow};
+use uuid::Uuid;
 
 pub struct AccountManager {
     pool: r2d2::Pool<ConnectionManager<PgConnection>>
@@ -69,9 +70,9 @@ impl AccountManager {
         };
 
 
-        let inserted_id = diesel::insert_into(PaymentMethodTable::table).values(&req).returning(id).get_result::<(&String)>(&mut conn)?;
+        let inserted_id = diesel::insert_into(PaymentMethodTable::table).values(&req).returning(id).get_result::<(Uuid)>(&mut conn)?;
         let cloned = inserted_id.clone();
-        Ok(cloned)
+        Ok(cloned.to_string())
     }
 
 }

@@ -158,7 +158,7 @@ impl AptosWallet {
                 } else if let Some(tx_type) = response.get("type") {
                     if let Value::String(tx_type_value) = tx_type {
                         if tx_type_value.eq("pending_transaction") {
-                            tokio::time::sleep(Duration::from_secs(1)).await.await;
+                            tokio::time::sleep(Duration::from_secs(1)).await;
                             count += 1;
                             continue;
                         }

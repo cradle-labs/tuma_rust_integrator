@@ -78,7 +78,7 @@ impl TumaRequestHandler {
                             None=>return Err(anyhow!("token_address_not_found"))
                         };
                         let scale = match payload.token.decimals {
-                            Some(v) => 10**v,
+                            Some(v) => 10.pow(v),
                             None=>return Err(anyhow!("tokens_should_have_a_scale"))
                         };
                         match &payload.token.is_fungible_asset {
