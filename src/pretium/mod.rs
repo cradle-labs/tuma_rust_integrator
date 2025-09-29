@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 const ON_RAMP_CALLBACK_ENDPOINT: &str = "";
 const OFF_RAMP_CALLBACK_ENDPOINT: &str = "";
 
-#[derive(Debug,Clone, Debug)]
+#[derive(Debug,Clone)]
 pub struct PretiumService {
     client: Client,
     api_key: String,
