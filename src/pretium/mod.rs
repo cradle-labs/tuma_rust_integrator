@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::env;
 use reqwest::Client;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
@@ -79,17 +80,19 @@ pub enum PretiumProcessResponse {
 
 
 impl PretiumService {
-    pub fn new(api_key: String)->Self {
+    pub fn new(api_key: String)->Result<Self> {
         let client = Client::new();
-        let callback_on_ramp = format!("{}", ON_RAMP_CALLBACK_ENDPOINT);
-        let callback_off_ramp = format!("{}", OFF_RAMP_CALLBACK_ENDPOINT);
+        let on_ramp = env::var("ON_RAMP_CALLBACK_ENDPOINT")?;
+        let off_ramp = env::var("OFF_RAMP_CALLBACK_ENDPOINT")?;
+        let callback_on_ramp = format!("{}", on_ramp);
+        let callback_off_ramp = format!("{}", off_ramp);
 
-        Self {
+        Ok(Self {
             client,
             api_key,
             callback_on_ramp,
             callback_off_ramp
-        }
+        })
     }
 
     fn to_payload<'a>(&'a self, req: &'a PretiumProcessRequest) ->HashMap<&'a str, &'a str> {
