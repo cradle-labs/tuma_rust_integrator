@@ -1,4 +1,4 @@
-use diesel::{r2d2, Insertable, PgConnection};
+use diesel::{r2d2, Insertable, PgConnection, Queryable, Selectable};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
 use serde::{Deserialize, Serialize};
 use crate::schema::account as AccountTable;
@@ -6,6 +6,7 @@ use crate::schema::payment_method as PaymentMethodTable;
 use diesel::prelude::*;
 use anyhow::{Result, anyhow};
 use uuid::Uuid;
+use chrono::NaiveDateTime;
 
 pub struct AccountManager {
     pool: r2d2::Pool<ConnectionManager<PgConnection>>
@@ -24,6 +25,17 @@ pub enum PaymentMethodType {
     Bank,
     #[serde(rename = "mobile-money")]
     MobileMoney
+}
+
+#[derive(Deserialize, Serialize, Queryable, Selectable)]
+#[diesel(table_name = PaymentMethodTable)]
+pub struct PaymentMethod {
+    pub id: Uuid,
+    pub owner: String,
+    pub payment_method_type: Option<PaymentMethodType>,
+    pub identity: String,
+    pub provider_id: String,
+    pub created_at: NaiveDateTime,
 }
 
 #[derive(Deserialize, Serialize, Insertable)]
@@ -73,6 +85,25 @@ impl AccountManager {
         let inserted_id = diesel::insert_into(PaymentMethodTable::table).values(&req).returning(id).get_result::<(Uuid)>(&mut conn)?;
         let cloned = inserted_id.clone();
         Ok(cloned.to_string())
+    }
+
+    pub async fn get_payment_methods_by_account(&mut self, account_address: String) -> Result<Vec<PaymentMethod>> {
+        use crate::schema::payment_method::dsl::*;
+
+        let mut conn = match self.pool.get() {
+            Ok(conn) => conn,
+            Err(e) => {
+                println!("Unable to get a db connection {}", e);
+                return Err(anyhow!("unable to create a db connection"))
+            }
+        };
+
+        let methods = payment_method
+            .filter(owner.eq(account_address))
+            .select(PaymentMethod::as_select())
+            .load::<PaymentMethod>(&mut conn)?;
+
+        Ok(methods)
     }
 
 }
