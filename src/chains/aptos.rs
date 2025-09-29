@@ -80,7 +80,7 @@ impl AptosWallet {
     pub fn new()-> Result<Self> {
 
         let network_val = env::var("NETWORK").unwrap_or("testnet".to_string());
-        let tooma_contract_address = env::var("TOOMA_CONTRACT_ADDRESS").expect("ISSUER CONTRACT ADDRESS NOT PROVIDED");
+        let tooma_contract_address = env::var("TOOMA_CONTRACT_ADDRESS").expect("TUMA CONTRACT ADDRESS NOT PROVIDED");
         let private_key = env::var("PRIVATE_KEY_DO_NOT_EXPOSE").expect("PRIVATE KEY NOT FOUND");
         let aptos_api_key = match env::var("APTOS_API_KEY") {
             Ok(k)=>Some(k),
@@ -107,7 +107,7 @@ impl AptosWallet {
 
         let contract_address = AccountAddress::from_str(&tooma_contract_address)?;
 
-        let module_id = ModuleId::new(contract_address, "issuer".to_string());
+        let module_id = ModuleId::new(contract_address, "tuma".to_string());
 
         Ok(Self {
             client,
@@ -190,6 +190,7 @@ impl AptosWallet {
                 }
 
                 let tuma_id = self.tooma_module_id.clone();
+                let refv = aptos_bcs::to_bytes(&args.on_ramp_request_id)?;
                 payload = TransactionPayload::EntryFunction(
                     EntryFunction::new(
                         tuma_id,
@@ -198,7 +199,7 @@ impl AptosWallet {
                         vec![
                             to_address.to_vec(),
                             Vec::from(parsed_amount.to_le_bytes()),
-                            args.on_ramp_request_id.into_bytes()
+                            refv
                         ]
                     )
                 )
@@ -211,6 +212,7 @@ impl AptosWallet {
 
                 let metadata = AccountAddress::from_str(&args.token)?;
                 let tuma_module_id = self.tooma_module_id.clone();
+                let refv = aptos_bcs::to_bytes(&args.on_ramp_request_id)?;
                 payload = TransactionPayload::EntryFunction(
                     EntryFunction::new(
                         tuma_module_id,
@@ -222,7 +224,7 @@ impl AptosWallet {
                             metadata.to_vec(),
                             to_address.to_vec(),
                             Vec::from(parsed_amount.to_le_bytes()),
-                            args.on_ramp_request_id.into_bytes()
+                            refv
                         ]
                     )
                 )

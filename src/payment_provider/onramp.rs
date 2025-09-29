@@ -194,6 +194,23 @@ impl OnRampHandler {
             _=>OnRampRequestStatusEnum::Canceled
         };
 
+        match status_value {
+            OnRampRequestStatusEnum::Completed=> {},
+            _=>{
+                let _ = diesel::update(OnRampRequestsTable::table)
+                    .filter(
+                        transaction_ref.eq(callback.transaction_code.clone()).and(
+                            status.eq(OnRampRequestStatusEnum::Pending)
+                        )
+                    )
+                    .set(
+                        status.eq(status_value)
+                    )
+                    .execute(&mut conn)?;
+                return Ok(());
+            }
+        }
+
         let data_json = match callback.receipt_number {
             Some(s)=>json!({
                 "receipt": s
@@ -218,8 +235,10 @@ impl OnRampHandler {
             }
         };
 
+
         let token_b_amount = Currency::convert(&mut self.panora, &mut self.pretium, provider.supported_currency, target_currency.clone(), on_ramp_request.amount.unwrap().to_f64().unwrap()).await?;
 
+        println!("Token b amount:: {}", token_b_amount);
 
 
         let hash =  self.req_handler.send(TumaRequest::Crypto(CryptoRequest {

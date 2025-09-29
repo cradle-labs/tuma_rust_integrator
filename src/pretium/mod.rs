@@ -1,8 +1,28 @@
 use std::collections::HashMap;
 use std::env;
-use reqwest::Client;
+use reqwest::{Client, Url};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
+// --- lenient deserializers for providers that send numbers as strings ---
+use serde::de::{self, Deserializer};
+
+fn de_f64<'de, D: Deserializer<'de>>(d: D) -> Result<f64, D::Error> {
+    let v = serde_json::Value::deserialize(d)?;
+    match v {
+        serde_json::Value::Number(n) => n.as_f64().ok_or_else(|| de::Error::custom("invalid f64")),
+        serde_json::Value::String(s) => s.parse::<f64>().map_err(|e| de::Error::custom(format!("invalid f64: {e}"))),
+        _ => Err(de::Error::custom("invalid type for f64")),
+    }
+}
+
+fn de_u16<'de, D: Deserializer<'de>>(d: D) -> Result<u16, D::Error> {
+    let v = serde_json::Value::deserialize(d)?;
+    match v {
+        serde_json::Value::Number(n) => n.as_u64().map(|x| x as u16).ok_or_else(|| de::Error::custom("invalid u16")),
+        serde_json::Value::String(s) => s.parse::<u16>().map_err(|e| de::Error::custom(format!("invalid u16: {e}"))),
+        _ => Err(de::Error::custom("invalid type for u16")),
+    }
+}
 
 const ON_RAMP_CALLBACK_ENDPOINT: &str = "";
 const OFF_RAMP_CALLBACK_ENDPOINT: &str = "";
@@ -15,9 +35,9 @@ pub struct PretiumService {
     callback_off_ramp: String
 }
 
-#[derive(Deserialize,Clone)]
+#[derive(Deserialize,Serialize,Clone)]
 pub struct PretiumResponseWrapper<T> {
-    pub code: u64,
+    #[serde(deserialize_with = "de_u16")] pub code: u16,
     pub message: String,
     pub data: T
 }
@@ -29,9 +49,12 @@ pub struct ExchangeRateRequest {
 
 #[derive(Deserialize,Serialize,Clone)]
 pub struct ExchangeRateResponse {
+    #[serde(deserialize_with = "de_f64")]
     pub buying_rate: f64,
+    #[serde(deserialize_with = "de_f64")]
     pub selling_rate: f64,
-    pub quoted_rate: f64
+    #[serde(deserialize_with = "de_f64")]
+    pub quoted_rate: f64,
 }
 
 
@@ -126,14 +149,14 @@ impl PretiumService {
     fn to_path(&self, req: &PretiumProcessRequest)->String {
 
         match req {
-            PretiumProcessRequest::ExchangeRate(_)=> "/exchange-rate".to_string(),
-            PretiumProcessRequest::OnRampMobile(d)=>format!("/{}/collect", d.currency_id),
-            PretiumProcessRequest::OffRampMobile(d)=>format!("/{}/disburse", d.currency)
+            PretiumProcessRequest::ExchangeRate(_)=> "/v1/exchange-rate".to_string(),
+            PretiumProcessRequest::OnRampMobile(d)=>format!("/{}/collect", d.currency_id.to_lowercase()),
+            PretiumProcessRequest::OffRampMobile(d)=>format!("/{}/disburse", d.currency.to_lowercase())
         }
     }
 
     pub async fn process(&mut self, req: PretiumProcessRequest)->Result<PretiumProcessResponse> {
-
+        let client = self.client.clone();
         let path = self.to_path(&req);
         let payload = self.to_payload(&req);
 
@@ -141,23 +164,38 @@ impl PretiumService {
         println!("API KEY {:?}", self.api_key);
         println!("Path {:?}", path);
 
-        let resp = self.client.post(path.as_str())
+        let base = Url::parse("https://api.xwift.africa/").expect("valid base url");
+        let url = base.join(path.trim_start_matches('/')).expect("valid joined url");
+
+        let resp = match client.post(url)
             .header("x-api-key", self.api_key.as_str())
             .json(&payload)
             .send()
-            .await?;
+            .await {
+            Ok(res)=>res,
+            Err(e)=>{
+                println!("Something went wrong building the client {}",e);
+                return Err(anyhow::anyhow!("unable_to_build_client::{}",e))
+            }
+        };
+        // convert non-2xx into errors so we don't try to JSON-decode error HTML/text
+        let resp = resp.error_for_status()?;
+        // read body once for robust logging + flexible decode (ignores bad content-types)
+        let body = resp.bytes().await?;
+        eprintln!("RAW BODY: {}", String::from_utf8_lossy(&body));
+        println!("able to build");
 
         match req {
             PretiumProcessRequest::ExchangeRate(_)=>{
-                let res = resp.json::<PretiumResponseWrapper<ExchangeRateResponse>>().await?;
+                let res: PretiumResponseWrapper<ExchangeRateResponse> = serde_json::from_slice(&body)?;
                 Ok(PretiumProcessResponse::ExchangeRate(res.data))
             },
             PretiumProcessRequest::OnRampMobile(_)=>{
-                let res = resp.json::<PretiumResponseWrapper<OnRampRequestMobileResponse>>().await?;
+                let res: PretiumResponseWrapper<OnRampRequestMobileResponse> = serde_json::from_slice(&body)?;
                 Ok(PretiumProcessResponse::OnRampMobile(res.data))
             },
             PretiumProcessRequest::OffRampMobile(_)=>{
-                let res = resp.json::<PretiumResponseWrapper<OffRampMobileResponse>>().await?;
+                let res: PretiumResponseWrapper<OffRampMobileResponse> = serde_json::from_slice(&body)?;
                 Ok(PretiumProcessResponse::OffRampMobile(res.data))
             }
         }

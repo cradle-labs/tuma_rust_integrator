@@ -71,8 +71,9 @@ impl Currency {
 
     pub async fn convert(panora_provider: &mut AptosPanoraProvider, pretium_service: &mut PretiumService, currency_a: Currency, currency_b: Currency, currency_a_amount: f64) ->Result<f64> {
         let currency_a_in_usd = currency_a.get_usd_exchange_rate(panora_provider, pretium_service).await?;
+        println!("Currency a:: {}", currency_a_in_usd);
         let currency_b_in_usd = currency_b.get_usd_exchange_rate(panora_provider, pretium_service).await?;
-
+        println!("Currency b:: {}", currency_b_in_usd);
         let a_in_usd = currency_a_amount.div(currency_a_in_usd);
         let usd_in_b = a_in_usd.mul(currency_b_in_usd);
 
