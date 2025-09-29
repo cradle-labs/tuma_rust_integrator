@@ -246,4 +246,14 @@ impl OnRampHandler {
 
         Ok(())
     }
+
+    pub async fn get_transaction(&mut self, transaction_code_value: String)-> Result<GetOnRampRequest> {
+
+        let mut  conn = self.pool.get()?;
+
+        use crate::schema::on_ramp_requests::dsl::*;
+        let res = on_ramp_requests.filter(transaction_ref.eq(transaction_code_value)).get_result::<GetOnRampRequest>(&mut conn)?;
+
+        Ok(res)
+    }
 }
