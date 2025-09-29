@@ -21,9 +21,9 @@ pub struct CreateAccountReq {
 
 #[derive(Deserialize, Serialize, diesel_derive_enum::DbEnum, Debug)]
 #[ExistingTypePath = "crate::schema::sql_types::PaymentMethodType"]
+#[serde(rename_all="kebab-case")]
 pub enum PaymentMethodType {
     Bank,
-    #[serde(rename = "mobile-money")]
     MobileMoney
 }
 
