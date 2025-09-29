@@ -1,5 +1,10 @@
-mod payment_provider;
-mod schema;
+pub mod payment_provider;
+pub mod schema;
+pub mod chains;
+pub mod accounts;
+pub mod controller;
+pub mod pretium;
+pub mod r#static;
 
 #[tokio::main]
 fn main() {
