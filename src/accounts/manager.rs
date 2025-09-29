@@ -27,7 +27,7 @@ pub enum PaymentMethodType {
     MobileMoney
 }
 
-#[derive(Deserialize, Serialize, Queryable, Selectable)]
+#[derive(Deserialize, Serialize, Queryable, Selectable, Debug)]
 #[diesel(table_name = PaymentMethodTable)]
 pub struct PaymentMethod {
     pub id: Uuid,
