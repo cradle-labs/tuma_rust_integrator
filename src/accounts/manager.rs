@@ -24,6 +24,7 @@ pub struct CreateAccountReq {
 #[serde(rename_all="kebab-case")]
 pub enum PaymentMethodType {
     Bank,
+    #[db_rename ="mobile-money"]
     MobileMoney
 }
 
