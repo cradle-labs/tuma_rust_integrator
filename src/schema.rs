@@ -6,6 +6,10 @@ pub mod sql_types {
     pub struct LedgerEntryType;
 
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "offramp_request_status"))]
+    pub struct OfframpRequestStatus;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "onramp_request_status"))]
     pub struct OnrampRequestStatus;
 
@@ -26,6 +30,13 @@ diesel::table! {
 }
 
 diesel::table! {
+    kvstore (key) {
+        key -> Text,
+        value -> Nullable<Text>,
+    }
+}
+
+diesel::table! {
     use diesel::sql_types::*;
     use super::sql_types::LedgerEntryType;
     use super::sql_types::TransactionType;
@@ -39,6 +50,26 @@ diesel::table! {
         transaction_type -> Nullable<TransactionType>,
         payment_method_id -> Nullable<Uuid>,
         timestamp -> Nullable<Timestamp>,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::OfframpRequestStatus;
+
+    off_ramp_requests (id) {
+        id -> Uuid,
+        requester -> Text,
+        from_token -> Text,
+        from_token_amount -> Numeric,
+        transaction_version -> Text,
+        transaction_hash -> Text,
+        transaction_code -> Nullable<Text>,
+        data -> Nullable<Jsonb>,
+        requested_at -> Timestamp,
+        finalized_at -> Nullable<Timestamp>,
+        status -> OfframpRequestStatus,
+        to_amount -> Nullable<Numeric>,
     }
 }
 
@@ -78,13 +109,16 @@ diesel::table! {
 
 diesel::joinable!(ledger -> account (address));
 diesel::joinable!(ledger -> payment_method (payment_method_id));
+diesel::joinable!(off_ramp_requests -> account (requester));
 diesel::joinable!(on_ramp_requests -> account (requester));
 diesel::joinable!(on_ramp_requests -> payment_method (payment_method_id));
 diesel::joinable!(payment_method -> account (owner));
 
 diesel::allow_tables_to_appear_in_same_query!(
     account,
+    kvstore,
     ledger,
+    off_ramp_requests,
     on_ramp_requests,
     payment_method,
 );

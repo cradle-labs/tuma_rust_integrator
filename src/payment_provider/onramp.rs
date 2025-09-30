@@ -275,4 +275,16 @@ impl OnRampHandler {
 
         Ok(res)
     }
+
+    pub async fn get_transactions(&mut self, address_value: String) -> Result<Vec<GetOnRampRequest>> {
+        let mut  conn = self.pool.get()?;
+        use crate::schema::on_ramp_requests::dsl::*;
+
+        let res = on_ramp_requests.filter(
+            requester.eq(address_value)
+        ).get_results::<GetOnRampRequest>(&mut conn).unwrap_or_else(|_| vec![]);
+
+        Ok(res)
+    }
+
 }

@@ -21,6 +21,8 @@ pub enum SendFiatRequest {
     MOBILE(SendFiatMobile),
     BANK(SendFiatACH)
 }
+
+#[derive(Debug,Clone)]
 pub struct FiatSender {
     pretium: PretiumService
 }
@@ -37,7 +39,7 @@ impl FiatSender {
         let process_request = match req {
             SendFiatRequest::MOBILE(d)=> PretiumProcessRequest::OffRampMobile(OffRampRequestMobile {
                 amount: d.amount.to_string(),
-                currency: d.currency.name,
+                currency: d.currency.symbol,
                 phone: d.phone,
                 network: d.network_id
             }),

@@ -35,6 +35,7 @@ pub enum TumaRequest {
     Crypto(CryptoRequest)
 }
 
+#[derive(Clone,Debug)]
 pub struct TumaRequestHandler {
     pool: r2d2::Pool<ConnectionManager<PgConnection>>,
     fiat_sender: FiatSender

@@ -44,4 +44,11 @@ impl CurrencyStaticData {
             None=>None
         }
     }
+
+    pub fn get_currency_by_token(&self, token: String)->Option<Currency>{
+        match self.currencies.iter().find(|c|match &c.address {Some(v)=>v.to_string() == token, None =>false}) {
+            Some(c)=>Some(c.clone()),
+            None=>None
+        }
+    }
 }
