@@ -2,7 +2,7 @@ use diesel::{r2d2, PgConnection};
 use diesel::r2d2::{ConnectionManager};
 use anyhow::{Result,anyhow};
 use bigdecimal::{BigDecimal, FromPrimitive, ToPrimitive};
-use chrono::NaiveDateTime;
+use chrono::{NaiveDateTime, Utc};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -259,7 +259,8 @@ impl OnRampHandler {
                 status.eq(status_value),
                 data.eq(data_json),
                 final_token_quote.eq(BigDecimal::from_f64(token_b_amount)),
-                on_chain_transaction_hash.eq(hash)
+                on_chain_transaction_hash.eq(hash),
+                finalized_at.eq(Utc::now().naive_utc())
                 ))
             .execute(&mut conn)?;
 
