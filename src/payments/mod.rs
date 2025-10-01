@@ -226,12 +226,13 @@ impl PaymentSessions {
     }
 
 
-    pub async fn get_payment_request(conn: &mut PooledConnection<ConnectionManager<PgConnection>>, session_id: String) -> Result<GetPaymentSession> {
+    pub async fn get_payment_request(&mut self, session_id: String) -> Result<GetPaymentSession> {
+        let mut  conn = self.pool.get()?;
         use crate::schema::payment_sessions::dsl::*;
         let normalized_session_id = Uuid::from_str(session_id.as_str())?;
         let res = payment_sessions.filter(
             id.eq(normalized_session_id)
-        ).get_result::<GetPaymentSession>(conn)?;
+        ).get_result::<GetPaymentSession>(&mut conn)?;
 
         Ok(res)
 
