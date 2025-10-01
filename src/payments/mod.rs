@@ -1,7 +1,7 @@
 use std::env;
 use std::str::FromStr;
 use diesel::{r2d2, ExpressionMethods, Insertable, PgConnection, QueryDsl, Queryable, RunQueryDsl};
-use diesel::r2d2::ConnectionManager;
+use diesel::r2d2::{ConnectionManager, PooledConnection};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use anyhow::{Result, anyhow};
@@ -223,5 +223,17 @@ impl PaymentSessions {
         ).execute(&mut conn)?;
 
         Ok(())
+    }
+
+
+    pub async fn get_payment_request(conn: &mut PooledConnection<ConnectionManager<PgConnection>>, session_id: String) -> Result<GetPaymentSession> {
+        use crate::schema::payment_sessions::dsl::*;
+        let normalized_session_id = Uuid::from_str(session_id.as_str())?;
+        let res = payment_sessions.filter(
+            id.eq(normalized_session_id)
+        ).get_result::<GetPaymentSession>(conn)?;
+
+        Ok(res)
+
     }
 }
