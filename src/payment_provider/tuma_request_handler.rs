@@ -65,7 +65,7 @@ impl TumaRequestHandler {
                 })).await
             },
             TumaRequest::BuyGoodsFiat(payload )=>{
-                self.fiat_sender.send(SendFiatRequest::MOBILE(SendFiatMobile {
+                self.fiat_sender.send(SendFiatRequest::BuyGoodsMobile(SendFiatMobile {
                     currency: payload.currency,
                     amount: payload.amount,
                     network_id: payload.network_id,
