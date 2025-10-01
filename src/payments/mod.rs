@@ -3,7 +3,7 @@ use std::str::FromStr;
 use diesel::{r2d2, ExpressionMethods, Insertable, PgConnection, QueryDsl, Queryable, RunQueryDsl};
 use diesel::r2d2::ConnectionManager;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{json, Value};
 use anyhow::{Result, anyhow};
 use bigdecimal::{BigDecimal, FromPrimitive};
 use chrono::NaiveDateTime;
@@ -183,5 +183,45 @@ impl PaymentSessions {
         ).execute(&mut conn)?;
 
         Ok(session_id_as_uuid)
+    }
+
+    pub async fn get_by_transaction_code(&mut self, code: String)-> Result<GetPaymentSession> {
+        let mut conn = self.pool.get()?;
+
+        use crate::schema::payment_sessions::dsl::*;
+        let payment_session_res = payment_sessions.filter(
+            transaction_code.eq(code)
+        ).get_result::<GetPaymentSession>(&mut conn)?;
+
+        Ok(payment_session_res)
+    }
+
+    pub async fn handle_callback(&mut self, transfer_code: String, status_value: String, receipt: Option<String>)->Result<()> {
+        use crate::schema::payment_sessions::dsl::*;
+        let mut conn = self.pool.get()?;
+
+        let s = match status_value.as_str() {
+            "COMPLETE"=> OffRampStatus::Completed,
+            _=>OffRampStatus::Failed
+        };
+
+        let data_value = match receipt {
+            None => json!({}),
+            Some(v) => json!({
+                "receipt": v
+            })
+        };
+
+        let res = diesel::update(PaymentsSessionTable::table)
+            .filter(
+                transaction_code.eq(transfer_code)
+            ).set(
+            (
+                status.eq(s),
+                data.eq(data_value)
+            )
+        ).execute(&mut conn)?;
+
+        Ok(())
     }
 }
