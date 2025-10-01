@@ -70,6 +70,7 @@ diesel::table! {
         finalized_at -> Nullable<Timestamp>,
         status -> OfframpRequestStatus,
         to_amount -> Nullable<Numeric>,
+        observer_key -> Nullable<Text>,
     }
 }
 
