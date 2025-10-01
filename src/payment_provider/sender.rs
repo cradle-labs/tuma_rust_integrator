@@ -19,6 +19,7 @@ pub struct SendFiatACH {
 
 pub enum SendFiatRequest {
     MOBILE(SendFiatMobile),
+    BuyGoodsMobile(SendFiatMobile),
     BANK(SendFiatACH)
 }
 
@@ -38,6 +39,12 @@ impl FiatSender {
 
         let process_request = match req {
             SendFiatRequest::MOBILE(d)=> PretiumProcessRequest::OffRampMobile(OffRampRequestMobile {
+                amount: d.amount.to_string(),
+                currency: d.currency.symbol,
+                phone: d.phone,
+                network: d.network_id
+            }),
+            SendFiatRequest::BuyGoodsMobile(d)=> PretiumProcessRequest::MakePaymentMobileBuyGoods(OffRampRequestMobile {
                 amount: d.amount.to_string(),
                 currency: d.currency.symbol,
                 phone: d.phone,

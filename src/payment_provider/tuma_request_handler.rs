@@ -31,6 +31,7 @@ pub struct CryptoRequest {
 
 pub enum TumaRequest {
     MobileFiat(MobileFiatRequest),
+    BuyGoodsFiat(MobileFiatRequest),
     ACHFiat(ACHFiatRequest),
     Crypto(CryptoRequest)
 }
@@ -63,6 +64,14 @@ impl TumaRequestHandler {
                     phone: payload.number
                 })).await
             },
+            TumaRequest::BuyGoodsFiat(payload )=>{
+                self.fiat_sender.send(SendFiatRequest::MOBILE(SendFiatMobile {
+                    currency: payload.currency,
+                    amount: payload.amount,
+                    network_id: payload.network_id,
+                    phone: payload.number
+                })).await
+            }
             TumaRequest::ACHFiat(payload)=>{
                 self.fiat_sender.send(SendFiatRequest::BANK(SendFiatACH {
                     amount: payload.amount,

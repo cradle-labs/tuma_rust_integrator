@@ -32,7 +32,8 @@ pub struct PretiumService {
     client: Client,
     api_key: String,
     callback_on_ramp: String,
-    callback_off_ramp: String
+    callback_off_ramp: String,
+    callback_buy_goods_off_ramp: String
 }
 
 #[derive(Deserialize,Serialize,Clone)]
@@ -92,13 +93,15 @@ pub struct OffRampMobileResponse {
 pub enum PretiumProcessRequest {
     ExchangeRate(ExchangeRateRequest),
     OnRampMobile(OnRampRequestMobileReq),
-    OffRampMobile(OffRampRequestMobile)
+    OffRampMobile(OffRampRequestMobile),
+    MakePaymentMobileBuyGoods(OffRampRequestMobile)
 }
 
 pub enum PretiumProcessResponse {
     ExchangeRate(ExchangeRateResponse),
     OnRampMobile(OnRampRequestMobileResponse),
-    OffRampMobile(OffRampMobileResponse)
+    OffRampMobile(OffRampMobileResponse),
+    MakePaymentMobileBuyGoods(OffRampRequestMobile)
 }
 
 
@@ -107,6 +110,7 @@ impl PretiumService {
         let client = Client::new();
         let on_ramp = env::var("ON_RAMP_CALLBACK_ENDPOINT")?;
         let off_ramp = env::var("OFF_RAMP_CALLBACK_ENDPOINT")?;
+        let buy_goods_off_ramp = env::var("CALLBACK_BUY_GOODS_OFF_RAMP")?;
         let callback_on_ramp = format!("{}", on_ramp);
         let callback_off_ramp = format!("{}", off_ramp);
 
@@ -114,7 +118,8 @@ impl PretiumService {
             client,
             api_key,
             callback_on_ramp,
-            callback_off_ramp
+            callback_off_ramp,
+            callback_buy_goods_off_ramp: buy_goods_off_ramp
         })
     }
 
@@ -139,6 +144,13 @@ impl PretiumService {
                 payload.insert("type", "MOBILE");
                 payload.insert("mobile_network", data.network.as_str());
                 payload.insert("callback_url", self.callback_off_ramp.as_str());
+            },
+            PretiumProcessRequest::MakePaymentMobileBuyGoods(data)=>{
+                payload.insert("shortcode", data.phone.as_str());
+                payload.insert("amount", data.amount.as_str());
+                payload.insert("type", "MOBILE");
+                payload.insert("mobile_network", data.network.as_str());
+                payload.insert("callback_url", self.callback_buy_goods_off_ramp.as_str());
             }
         }
 
@@ -151,7 +163,8 @@ impl PretiumService {
         match req {
             PretiumProcessRequest::ExchangeRate(_)=> "/v1/exchange-rate".to_string(),
             PretiumProcessRequest::OnRampMobile(d)=>format!("/{}/collect", d.currency_id.to_lowercase()),
-            PretiumProcessRequest::OffRampMobile(d)=>format!("/{}/disburse", d.currency.to_lowercase())
+            PretiumProcessRequest::OffRampMobile(d)=>format!("/{}/disburse", d.currency.to_lowercase()),
+            PretiumProcessRequest::MakePaymentMobileBuyGoods(d)=>format!("/{}/disburse", d.currency.to_lowercase())
         }
     }
 
@@ -195,6 +208,10 @@ impl PretiumService {
                 Ok(PretiumProcessResponse::OnRampMobile(res.data))
             },
             PretiumProcessRequest::OffRampMobile(_)=>{
+                let res: PretiumResponseWrapper<OffRampMobileResponse> = serde_json::from_slice(&body)?;
+                Ok(PretiumProcessResponse::OffRampMobile(res.data))
+            },
+            PretiumProcessRequest::MakePaymentMobileBuyGoods(_)=>{
                 let res: PretiumResponseWrapper<OffRampMobileResponse> = serde_json::from_slice(&body)?;
                 Ok(PretiumProcessResponse::OffRampMobile(res.data))
             }

@@ -152,7 +152,7 @@ impl PaymentSessions {
                         todo!("Add support for paybill transactions")
                     },
                     None=>{
-                        TumaRequest::MobileFiat(MobileFiatRequest {
+                        TumaRequest::BuyGoodsFiat(MobileFiatRequest {
                             currency: token_b_currency,
                             amount: token_b_amount,
                             number: session.payment_identity,
