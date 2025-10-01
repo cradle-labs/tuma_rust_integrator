@@ -7,3 +7,5 @@ pub mod pretium;
 pub mod r#static;
 pub mod kvstore;
 pub mod ledger;
+
+pub mod payments;
