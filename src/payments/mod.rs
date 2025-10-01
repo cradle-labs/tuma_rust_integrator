@@ -237,4 +237,16 @@ impl PaymentSessions {
         Ok(res)
 
     }
+
+    pub async fn get_payment_sessions(&mut self, address: String)-> Result<Vec<GetPaymentSession>> {
+        let mut conn = self.pool.get()?;
+
+        use crate::schema::payment_sessions::dsl::*;
+
+        let res = payment_sessions.filter(
+            payer.eq(address)
+        ).get_results::<GetPaymentSession>(&mut conn).unwrap_or_else(|_|vec![]);
+
+        Ok(res)
+    }
 }
