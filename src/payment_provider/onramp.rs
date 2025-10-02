@@ -211,9 +211,12 @@ impl OnRampHandler {
             }
         }
 
+        let name = callback.public_name.unwrap_or_else(|| "".to_string());
+
         let data_json = match callback.receipt_number {
             Some(s)=>json!({
-                "receipt": s
+                "receipt": s,
+                "name":name
             }),
             None=>json!({})
         };

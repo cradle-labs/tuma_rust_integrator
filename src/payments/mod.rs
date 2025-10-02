@@ -197,7 +197,7 @@ impl PaymentSessions {
         Ok(payment_session_res)
     }
 
-    pub async fn handle_callback(&mut self, transfer_code: String, status_value: String, receipt: Option<String>)->Result<()> {
+    pub async fn handle_callback(&mut self, transfer_code: String, status_value: String, receipt: Option<String>, public_name: Option<String>)->Result<()> {
         use crate::schema::payment_sessions::dsl::*;
         let mut conn = self.pool.get()?;
 
@@ -206,10 +206,13 @@ impl PaymentSessions {
             _=>OffRampStatus::Failed
         };
 
+        let name = public_name.unwrap_or_else(|| "".to_string());
+
         let data_value = match receipt {
             None => json!({}),
             Some(v) => json!({
-                "receipt": v
+                "receipt": v,
+                "name": name
             })
         };
 
