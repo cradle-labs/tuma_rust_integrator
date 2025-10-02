@@ -75,7 +75,7 @@ impl Currency {
         let currency_b_in_usd = currency_b.get_usd_exchange_rate(panora_provider, pretium_service).await?;
         println!("Currency b:: {}", currency_b_in_usd);
         let a_in_usd = match currency_a.currency_type { CurrencyType::Fiat=> currency_a_amount.div(currency_a_in_usd), CurrencyType::Crypto=> currency_a_amount.mul(currency_a_in_usd)} ;
-        let usd_in_b = a_in_usd.div(currency_b_in_usd);
+        let usd_in_b = match currency_a.currency_type {CurrencyType::Fiat => a_in_usd.div(currency_b_in_usd), CurrencyType::Crypto => a_in_usd.mul(currency_b_in_usd)} ;
 
         Ok(usd_in_b)
     }

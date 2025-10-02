@@ -169,6 +169,7 @@ impl PaymentSessions {
 
         let transaction_code_value = self.handler.send(req).await?;
 
+        println!("Completed transaction request {}",transaction_code_value);
         let token_a_big = BigDecimal::from_f64(token_a_amount);
 
         let  res = diesel::update(PaymentsSessionTable::table).filter(
