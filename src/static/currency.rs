@@ -61,7 +61,7 @@ impl CurrencyStaticData {
                     symbol: "GUI".to_string(),
                     name: "Gui Inu".to_string(),
                     decimals: Some(6),
-                    address: Some("0x0009da434d9b873b5159e8eeed70202ad22dc075867a7793234fbc981b63e119".to_string()),
+                    address: Some("0x9da434d9b873b5159e8eeed70202ad22dc075867a7793234fbc981b63e119".to_string()),
                     chain: Some("aptos".to_string()),
                     id: "gui-apt".to_string(),
                     description: "GUI".to_string(),
