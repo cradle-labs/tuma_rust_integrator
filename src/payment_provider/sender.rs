@@ -6,7 +6,8 @@ pub struct SendFiatMobile {
     pub amount: f64,
     pub phone: String,
     pub network_id: String,
-    pub currency: Currency
+    pub currency: Currency,
+    pub is_buy_goods: Option<bool>
 }
 
 pub struct SendFiatMobilePayBill {
@@ -59,7 +60,7 @@ impl FiatSender {
                 currency: d.currency.symbol,
                 phone: d.phone,
                 network: d.network_id,
-                is_buy_goods: Some(true)
+                is_buy_goods: d.is_buy_goods
             }),
             SendFiatRequest::PayBillMobile(d)=> PretiumProcessRequest::PayBillMobile(PayBillRequestMobile {
                 pay_bill: d.pay_bill_number,

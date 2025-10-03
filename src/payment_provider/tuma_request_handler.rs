@@ -71,7 +71,8 @@ impl TumaRequestHandler {
                     currency: payload.currency,
                     amount: payload.amount,
                     network_id: payload.network_id,
-                    phone: payload.number
+                    phone: payload.number,
+                    is_buy_goods: None
                 })).await
             },
             TumaRequest::BuyGoodsFiat(payload )=>{
@@ -79,7 +80,8 @@ impl TumaRequestHandler {
                     currency: payload.currency,
                     amount: payload.amount,
                     network_id: payload.network_id,
-                    phone: payload.number
+                    phone: payload.number,
+                    is_buy_goods: Some(payload.is_buy_goods)
                 })).await
             },
             TumaRequest::PayBillFiatMobile(payload)=>{
