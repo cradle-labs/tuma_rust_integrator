@@ -158,10 +158,13 @@ impl PretiumService {
                 payload.insert("callback_url", self.callback_off_ramp.as_str());
             },
             PretiumProcessRequest::MakePaymentMobileBuyGoods(data)=>{
+                println!("Data:: {:?}", data);
                 let transaction_type = match data.is_buy_goods {
-                    Some(v)=> if v { "BUY_GOODS" } else { "MOBILE" },
+                    Some(true)=> "BUY_GOODS",
+                    Some(false)=>"MOBILE",
                     None=> "MOBILE"
                 };
+                println!("Final transaction type {:?}", transaction_type);
                 payload.insert("shortcode", data.phone.as_str());
                 payload.insert("amount", data.amount.as_str());
                 payload.insert("type", transaction_type);
