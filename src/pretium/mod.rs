@@ -74,7 +74,7 @@ pub struct OnRampRequestMobileResponse {
     pub message: String
 }
 
-#[derive(Deserialize,Serialize, Clone)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct OffRampRequestMobile {
     pub phone: String,
     pub amount: String,
@@ -158,7 +158,7 @@ impl PretiumService {
                 payload.insert("callback_url", self.callback_off_ramp.as_str());
             },
             PretiumProcessRequest::MakePaymentMobileBuyGoods(data)=>{
-                println!("Data:: {:?}", data);
+                println!("Data:: {:?}", data.clone());
                 let transaction_type = match data.is_buy_goods {
                     Some(true)=> "BUY_GOODS",
                     Some(false)=>"MOBILE",
