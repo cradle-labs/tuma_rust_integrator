@@ -127,6 +127,7 @@ diesel::table! {
         final_fiat_value -> Numeric,
         status -> Nullable<OfframpRequestStatus>,
         transaction_code -> Nullable<Text>,
+        is_buy_goods -> Nullable<Bool>,
     }
 }
 

@@ -79,7 +79,8 @@ pub struct OffRampRequestMobile {
     pub phone: String,
     pub amount: String,
     pub network: String,
-    pub currency: String
+    pub currency: String,
+    pub is_buy_goods: Option<bool>
 }
 
 #[derive(Deserialize,Serialize,Clone)]
@@ -157,9 +158,13 @@ impl PretiumService {
                 payload.insert("callback_url", self.callback_off_ramp.as_str());
             },
             PretiumProcessRequest::MakePaymentMobileBuyGoods(data)=>{
+                let transaction_type = match data.is_buy_goods {
+                    Some(v)=> if v { "BUY_GOODS" } else { "MOBILE" },
+                    None=> "MOBILE"
+                };
                 payload.insert("shortcode", data.phone.as_str());
                 payload.insert("amount", data.amount.as_str());
-                payload.insert("type", "BUY_GOODS");
+                payload.insert("type", transaction_type);
                 payload.insert("mobile_network", data.network.as_str());
                 payload.insert("callback_url", self.callback_buy_goods_off_ramp.as_str());
             },

@@ -43,6 +43,7 @@ pub struct CreatePaymentSession {
     pub payer: String,
     pub data: Option<Value>,
     pub transferred_token: String,
+    pub is_buy_goods: bool
 }
 
 
@@ -72,7 +73,8 @@ pub struct GetPaymentSession {
     pub transferred_token: Option<String>,
     pub final_fiat_value: BigDecimal,
     pub status: Option<OffRampStatus>,
-    pub transaction_code: Option<String>
+    pub transaction_code: Option<String>,
+    pub is_buy_goods: Option<bool>
 }
 
 pub struct PaymentSessions {
@@ -103,8 +105,10 @@ impl PaymentSessions {
     }
 
 
-    pub async fn create_payment_session(&mut self, payer: String, provider: String, receiver_id: String, token: String, account_identity: Option<String>) -> Result<Uuid> {
+    pub async fn create_payment_session(&mut self, payer: String, provider: String, receiver_id: String, token: String, account_identity: Option<String>, is_buy_goods: Option<bool>) -> Result<Uuid> {
         let mut conn = self.pool.get()?;
+
+        let is_buy_goods_value = is_buy_goods.unwrap_or_else(||false);
 
         let id = diesel::insert_into(PaymentsSessionTable::table).values(& CreatePaymentSession {
             payment_identity: receiver_id,
@@ -113,6 +117,7 @@ impl PaymentSessions {
             payer,
             account_identity,
             transferred_token: token,
+            is_buy_goods: is_buy_goods_value
         }).returning(PaymentsSessionTable::id).get_result::<(Uuid)>(&mut conn)?;
 
        Ok(id)
@@ -158,11 +163,13 @@ impl PaymentSessions {
                         })
                     },
                     None=>{
+                        let is_buy_goods_value = session.is_buy_goods.unwrap_or_else(|| false);
                         TumaRequest::BuyGoodsFiat(MobileFiatRequest {
                             currency: token_b_currency,
                             amount: token_b_amount,
                             number: session.payment_identity,
-                            network_id: provider.id
+                            network_id: provider.id,
+                            is_buy_goods: is_buy_goods_value
                         })
                     }
                 }

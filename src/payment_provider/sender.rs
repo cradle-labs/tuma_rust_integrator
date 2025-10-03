@@ -51,13 +51,15 @@ impl FiatSender {
                 amount: d.amount.to_string(),
                 currency: d.currency.symbol,
                 phone: d.phone,
-                network: d.network_id
+                network: d.network_id,
+                is_buy_goods: None
             }),
             SendFiatRequest::BuyGoodsMobile(d)=> PretiumProcessRequest::MakePaymentMobileBuyGoods(OffRampRequestMobile {
                 amount: d.amount.to_string(),
                 currency: d.currency.symbol,
                 phone: d.phone,
-                network: d.network_id
+                network: d.network_id,
+                is_buy_goods: Some(true)
             }),
             SendFiatRequest::PayBillMobile(d)=> PretiumProcessRequest::PayBillMobile(PayBillRequestMobile {
                 pay_bill: d.pay_bill_number,

@@ -10,7 +10,8 @@ pub struct MobileFiatRequest {
     pub number: String,
     pub currency: Currency,
     pub amount: f64,
-    pub network_id: String
+    pub network_id: String,
+    pub is_buy_goods: bool
 }
 
 pub struct PayBillMobileRequest {
