@@ -4,10 +4,18 @@ use crate::chains::TumaSupportedChains;
 use anyhow::{Result, anyhow};
 use crate::chains::aptos::{SendFungibleTokenArgs, SendTokenTransactionArgs, WalletTransaction};
 use crate::controller::currency_controller::Currency;
-use crate::payment_provider::sender::{FiatSender, SendFiatACH, SendFiatMobile, SendFiatRequest};
+use crate::payment_provider::sender::{FiatSender, SendFiatACH, SendFiatMobile, SendFiatMobilePayBill, SendFiatRequest};
 
 pub struct MobileFiatRequest {
     pub number: String,
+    pub currency: Currency,
+    pub amount: f64,
+    pub network_id: String
+}
+
+pub struct PayBillMobileRequest {
+    pub pay_bill: String,
+    pub account_number: String,
     pub currency: Currency,
     pub amount: f64,
     pub network_id: String
@@ -32,6 +40,7 @@ pub struct CryptoRequest {
 pub enum TumaRequest {
     MobileFiat(MobileFiatRequest),
     BuyGoodsFiat(MobileFiatRequest),
+    PayBillFiatMobile(PayBillMobileRequest),
     ACHFiat(ACHFiatRequest),
     Crypto(CryptoRequest)
 }
@@ -71,7 +80,16 @@ impl TumaRequestHandler {
                     network_id: payload.network_id,
                     phone: payload.number
                 })).await
-            }
+            },
+            TumaRequest::PayBillFiatMobile(payload)=>{
+                self.fiat_sender.send(SendFiatRequest::PayBillMobile(SendFiatMobilePayBill {
+                    currency: payload.currency,
+                    amount: payload.amount,
+                    network_id: payload.network_id,
+                    pay_bill_number: payload.pay_bill,
+                    account_number: payload.account_number
+                })).await
+            },
             TumaRequest::ACHFiat(payload)=>{
                 self.fiat_sender.send(SendFiatRequest::BANK(SendFiatACH {
                     amount: payload.amount,
@@ -79,7 +97,7 @@ impl TumaRequestHandler {
                     bank_id: payload.bank_id,
                     account_number: payload.account
                 })).await
-            }
+            },
             TumaRequest::Crypto(payload)=>{
                 match payload.chain {
                     TumaSupportedChains::APTOS(mut wallet )=>{

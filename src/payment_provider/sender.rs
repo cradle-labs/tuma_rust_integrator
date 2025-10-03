@@ -1,12 +1,20 @@
 use anyhow::{Result, anyhow};
 use crate::controller::currency_controller::Currency;
-use crate::pretium::{OffRampRequestMobile, PretiumProcessRequest, PretiumProcessResponse, PretiumService};
+use crate::pretium::{OffRampRequestMobile, PayBillRequestMobile, PretiumProcessRequest, PretiumProcessResponse, PretiumService};
 
 pub struct SendFiatMobile {
     pub amount: f64,
     pub phone: String,
     pub network_id: String,
     pub currency: Currency
+}
+
+pub struct SendFiatMobilePayBill {
+    pub amount: f64,
+    pub pay_bill_number: String,
+    pub account_number: String,
+    pub network_id: String,
+    pub currency: Currency,
 }
 
 pub struct SendFiatACH {
@@ -20,6 +28,7 @@ pub struct SendFiatACH {
 pub enum SendFiatRequest {
     MOBILE(SendFiatMobile),
     BuyGoodsMobile(SendFiatMobile),
+    PayBillMobile(SendFiatMobilePayBill),
     BANK(SendFiatACH)
 }
 
@@ -49,6 +58,13 @@ impl FiatSender {
                 currency: d.currency.symbol,
                 phone: d.phone,
                 network: d.network_id
+            }),
+            SendFiatRequest::PayBillMobile(d)=> PretiumProcessRequest::PayBillMobile(PayBillRequestMobile {
+                pay_bill: d.pay_bill_number,
+                account_number: d.account_number,
+                amount: d.amount.to_string(),
+                network: d.network_id,
+                currency: d.currency.symbol
             }),
             _=>return Err(anyhow!("unsupported_off_ramp_engine"))
         };

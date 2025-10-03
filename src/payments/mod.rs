@@ -12,7 +12,7 @@ use crate::controller::aptos_panora_provider::AptosPanoraProvider;
 use crate::controller::currency_controller::Currency;
 use crate::payment_provider::provider::PaymentProviderType;
 use crate::payment_provider::sender::FiatSender;
-use crate::payment_provider::tuma_request_handler::{MobileFiatRequest, TumaRequest, TumaRequestHandler};
+use crate::payment_provider::tuma_request_handler::{MobileFiatRequest, PayBillMobileRequest, TumaRequest, TumaRequestHandler};
 use crate::pretium::PretiumService;
 use crate::r#static::currency::CurrencyStaticData;
 use crate::r#static::providers::StaticProviderData;
@@ -149,7 +149,13 @@ impl PaymentSessions {
             PaymentProviderType::MobileMoney => {
                 match session.account_identity {
                     Some(user_account)=>{
-                        todo!("Add support for paybill transactions")
+                        TumaRequest::PayBillFiatMobile(PayBillMobileRequest {
+                            pay_bill: session.payment_identity,
+                            account_number: user_account,
+                            network_id: provider.id,
+                            amount: token_b_amount,
+                            currency: token_b_currency
+                        })
                     },
                     None=>{
                         TumaRequest::BuyGoodsFiat(MobileFiatRequest {
