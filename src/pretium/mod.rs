@@ -148,7 +148,7 @@ impl PretiumService {
             PretiumProcessRequest::MakePaymentMobileBuyGoods(data)=>{
                 payload.insert("shortcode", data.phone.as_str());
                 payload.insert("amount", data.amount.as_str());
-                payload.insert("type", "MOBILE");
+                payload.insert("type", "BUY_GOODS");
                 payload.insert("mobile_network", data.network.as_str());
                 payload.insert("callback_url", self.callback_buy_goods_off_ramp.as_str());
             }
